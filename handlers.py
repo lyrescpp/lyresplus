@@ -175,17 +175,21 @@ async def handle_task_answer(message: Message, state: FSMContext):
     thinking = await message.answer("🤖 <i>AI проверяет твой ответ...</i>", parse_mode="HTML")
 
     system = "Ты строгий но справедливый преподаватель C++ для разработчиков БПЛА. Проверяешь задания и даёшь развёрнутый фидбек на русском языке. Если есть код — разбери его. Покажи правильное решение если есть ошибки."
-    prompt = mod["task"]["check_prompt"] + message.text
+prompt = mod["task"]["check_prompt"] + message.text
 
-    result = await ask_ai(system, prompt)
+result = await ask_ai(system, prompt)
 
-    await thinking.delete()
-    await message.answer(
-        f"🤖 <b>Проверка AI:</b>\n\n{result}",
-        reply_markup=kb_task_check(mod_id),
-        parse_mode="HTML"
-    )
-    await state.clear()
+await thinking.delete()
+
+# Отправляем БЕЗ parse_mode="HTML"
+await message.answer(
+    f"🤖 Проверка AI:\n\n{result}",
+    reply_markup=kb_task_check(mod_id)
+    # parse_mode="HTML" - УБРАЛИ
+)
+
+await state.clear()
+    
 
 
 # ─── AI чат по модулю ─────────────────────────────────
