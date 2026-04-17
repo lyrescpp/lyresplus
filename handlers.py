@@ -161,9 +161,8 @@ async def cb_task_check_prompt(call: CallbackQuery, state: FSMContext):
 
     await call.answer("Напиши ответ следующим сообщением ✏️")
 
-
 @router.message(UserState.waiting_task_answer)
-async def handle_task_answer(message: Message, state: FSMContext):
+async def handle_task_answer(message: Message, state: FSMContext):  # ← Добавлен state
     data = await state.get_data()
     mod_id = data.get("task_mod_id")
     mod = MODULES.get(mod_id)
@@ -172,23 +171,22 @@ async def handle_task_answer(message: Message, state: FSMContext):
         await state.clear()
         return
 
-    thinking = await message.answer("🤖 <i>AI проверяет твой ответ...</i>", parse_mode="HTML")
-
+    thinking = await message.answer("💡 <i>Думаю над ответом...</i>", parse_mode="HTML")
+    
     system = "Ты строгий но справедливый преподаватель C++ для разработчиков БПЛА. Проверяешь задания и даёшь развёрнутый фидбек на русском языке. Если есть код — разбери его. Покажи правильное решение если есть ошибки."
-prompt = mod["task"]["check_prompt"] + message.text
+    prompt = mod["task"]["check_prompt"] + message.text
 
-result = await ask_ai(system, prompt)
+    result = await ask_ai(system, prompt)
 
-await thinking.delete()
+    await thinking.delete()
 
-# Отправляем БЕЗ parse_mode="HTML"
-await message.answer(
-    f"🤖 Проверка AI:\n\n{result}",
-    reply_markup=kb_task_check(mod_id)
-    # parse_mode="HTML" - УБРАЛИ
-)
+    # Отправляем БЕЗ parse_mode="HTML"
+    await message.answer(
+        f"🤖 Проверка AI:\n\n{result}",
+        reply_markup=kb_task_check(mod_id)
+    )
 
-await state.clear()
+    await state.clear()
     
 
 
